@@ -6,33 +6,34 @@
 #include "stdint.h"
 
 unsigned char header[54] = {
-    0x42,          // identity : B
-    0x4d,          // identity : M
-    0,    0, 0, 0, // file size
-    0,    0,       // reserved1
-    0,    0,       // reserved2
-    54,   0, 0, 0, // RGB data offset
-    40,   0, 0, 0, // struct BITMAPINFOHEADER size
-    0,    0, 0, 0, // bmp width
-    0,    0, 0, 0, // bmp height
-    1,    0,       // planes
-    24,   0,       // bit per pixel
-    0,    0, 0, 0, // compression
-    0,    0, 0, 0, // data size
-    0,    0, 0, 0, // h resolution
-    0,    0, 0, 0, // v resolution
-    0,    0, 0, 0, // used colors
-    0,    0, 0, 0  // important colors
+    0x42,        // identity : B
+    0x4d,        // identity : M
+    0, 0, 0, 0,  // file size
+    0, 0,        // reserved1
+    0, 0,        // reserved2
+    54, 0, 0, 0, // RGB data offset
+    40, 0, 0, 0, // struct BITMAPINFOHEADER size
+    0, 0, 0, 0,  // bmp width
+    0, 0, 0, 0,  // bmp height
+    1, 0,        // planes
+    24, 0,       // bit per pixel
+    0, 0, 0, 0,  // compression
+    0, 0, 0, 0,  // data size
+    0, 0, 0, 0,  // h resolution
+    0, 0, 0, 0,  // v resolution
+    0, 0, 0, 0,  // used colors
+    0, 0, 0, 0   // important colors
 };
 
-union word {
+union word
+{
   int sint;
   unsigned int uint;
   unsigned char uc[4];
 };
 
 unsigned int input_rgb_raw_data_offset;
-const unsigned int output_rgb_raw_data_offset=54;
+const unsigned int output_rgb_raw_data_offset = 54;
 int width;
 int height;
 unsigned int width_bytes;
@@ -45,22 +46,24 @@ const int BLACK = 0;
 const int THRESHOLD = 90;
 
 // Sobel Filter ACC
-static char* const SOBELFILTER_START_ADDR = reinterpret_cast<char* const>(0x73000000);
-static char* const SOBELFILTER_READ_ADDR  = reinterpret_cast<char* const>(0x73000010);
+static char *const SOBELFILTER_START_ADDR = reinterpret_cast<char *>(0x73000000);
+static char *const SOBELFILTER_READ_ADDR = reinterpret_cast<char *>(0x73000010);
 
-// DMA 
-static volatile uint32_t * const DMA_SRC_ADDR  = (uint32_t * const)0x70000000;
-static volatile uint32_t * const DMA_DST_ADDR  = (uint32_t * const)0x70000004;
-static volatile uint32_t * const DMA_LEN_ADDR  = (uint32_t * const)0x70000008;
-static volatile uint32_t * const DMA_OP_ADDR   = (uint32_t * const)0x7000000C;
-static volatile uint32_t * const DMA_STAT_ADDR = (uint32_t * const)0x70000010;
+// DMA
+static volatile uint32_t *const DMA_SRC_ADDR = (uint32_t *)0x70000000;
+static volatile uint32_t *const DMA_DST_ADDR = (uint32_t *)0x70000004;
+static volatile uint32_t *const DMA_LEN_ADDR = (uint32_t *)0x70000008;
+static volatile uint32_t *const DMA_OP_ADDR = (uint32_t *)0x7000000C;
+static volatile uint32_t *const DMA_STAT_ADDR = (uint32_t *)0x70000010;
 static const uint32_t DMA_OP_MEMCPY = 1;
 
-bool _is_using_dma = false;
-int read_bmp(std::string infile_name) {
+bool _is_using_dma = true;
+int read_bmp(std::string infile_name)
+{
   FILE *fp_s = NULL; // source file handler
   fp_s = fopen(infile_name.c_str(), "rb");
-  if (fp_s == NULL) {
+  if (fp_s == NULL)
+  {
     printf("fopen %s error\n", infile_name.c_str());
     return -1;
   }
@@ -83,14 +86,16 @@ int read_bmp(std::string infile_name) {
 
   source_bitmap =
       (unsigned char *)malloc((size_t)width * height * bytes_per_pixel);
-  if (source_bitmap == NULL) {
+  if (source_bitmap == NULL)
+  {
     printf("malloc images_s error\n");
     return -1;
   }
 
   target_bitmap =
       (unsigned char *)malloc((size_t)width * height * bytes_per_pixel);
-  if (target_bitmap == NULL) {
+  if (target_bitmap == NULL)
+  {
     printf("malloc target_bitmap error\n");
     return -1;
   }
@@ -125,11 +130,13 @@ int read_bmp(std::string infile_name) {
   return 0;
 }
 
-int write_bmp(std::string outfile_name) {
+int write_bmp(std::string outfile_name)
+{
   FILE *fp_t = NULL; // target file handler
 
   fp_t = fopen(outfile_name.c_str(), "wb");
-  if (fp_t == NULL) {
+  if (fp_t == NULL)
+  {
     printf("fopen %s error\n", outfile_name.c_str());
     return -1;
   }
@@ -145,32 +152,127 @@ int write_bmp(std::string outfile_name) {
   return 0;
 }
 
-void write_data_to_ACC(char* ADDR, unsigned char* buffer, int len){
-  if(_is_using_dma){  
-    // Using DMA 
+void write_data_to_ACC(char *ADDR, unsigned char *buffer, int len)
+{
+  if (_is_using_dma)
+  {
+    // Using DMA
     *DMA_SRC_ADDR = (uint32_t)(buffer);
     *DMA_DST_ADDR = (uint32_t)(ADDR);
     *DMA_LEN_ADDR = len;
-    *DMA_OP_ADDR  = DMA_OP_MEMCPY;
-  }else{
+    *DMA_OP_ADDR = DMA_OP_MEMCPY;
+  }
+  else
+  {
     // Directly Send
-    memcpy(ADDR, buffer, sizeof(unsigned char)*len);
+    memcpy(ADDR, buffer, sizeof(unsigned char) * len);
   }
 }
-void read_data_from_ACC(char* ADDR, unsigned char* buffer, int len){
-  if(_is_using_dma){
-    // Using DMA 
+void read_data_from_ACC(char *ADDR, unsigned char *buffer, int len)
+{
+  if (_is_using_dma)
+  {
+    // Using DMA
     *DMA_SRC_ADDR = (uint32_t)(ADDR);
     *DMA_DST_ADDR = (uint32_t)(buffer);
     *DMA_LEN_ADDR = len;
-    *DMA_OP_ADDR  = DMA_OP_MEMCPY;
-  }else{
+    *DMA_OP_ADDR = DMA_OP_MEMCPY;
+  }
+  else
+  {
     // Directly Read
-    memcpy(buffer, ADDR, sizeof(unsigned char)*len);
+    memcpy(buffer, ADDR, sizeof(unsigned char) * len);
   }
 }
 
-#include "h4main.h"
-int main(int argc, char *argv[]) {
-  h4main(read_bmp, write_bmp, write_data_to_ACC, read_data_from_ACC, height, width, bytes_per_pixel, source_bitmap, SOBELFILTER_START_ADDR, SOBELFILTER_READ_ADDR);
+#include <iostream>
+#include <array>
+
+template <
+    typename X,
+    typename Y,
+    typename Z>
+auto get(
+    X row,
+    Y col,
+    Z channel)
+{
+  if ((X{} <= row && row < height) &&
+      (Y{} <= col && col < width) &&
+      (Z{} <= channel && channel < bytes_per_pixel))
+  {
+    return source_bitmap[(row * width + col) * bytes_per_pixel + channel];
+  }
+  else
+  {
+  }
+  return uint8_t{};
+}
+
+template <
+    typename X,
+    typename Y,
+    typename Z,
+    typename A>
+auto set(
+    X row,
+    Y col,
+    Z channel,
+    A data)
+{
+  if ((X{} <= row && row < height) &&
+      (Y{} <= col && col < width) &&
+      (Z{} <= channel && channel < bytes_per_pixel))
+  {
+    target_bitmap[(row * width + col) * bytes_per_pixel + channel] = data;
+  }
+  else
+  {
+  }
+}
+
+int main(int argc, char *argv[])
+{
+  read_bmp("lena_std_short.bmp");
+  for (auto row{0}; row < height; row++)
+  {
+    std::cerr << ".";
+    // std::cerr << "row " << row << std::endl;
+    for (auto col{0}; col < width + 4; col++)
+    {
+      // std::cerr << "col " << col << std::endl;
+      std::array<uint8_t, 15> tb_to_dut{
+          get(row - 2, col - 2, 0),
+          get(row - 2, col - 2, 1),
+          get(row - 2, col - 2, 2),
+          get(row - 1, col - 2, 0),
+          get(row - 1, col - 2, 1),
+          get(row - 1, col - 2, 2),
+          get(row + 0, col - 2, 0),
+          get(row + 0, col - 2, 1),
+          get(row + 0, col - 2, 2),
+          get(row + 1, col - 2, 0),
+          get(row + 1, col - 2, 1),
+          get(row + 1, col - 2, 2),
+          get(row + 2, col - 2, 0),
+          get(row + 2, col - 2, 1),
+          get(row + 2, col - 2, 2),
+      };
+      write_data_to_ACC(SOBELFILTER_START_ADDR, tb_to_dut.data(), tb_to_dut.size());
+      std::array<uint8_t, 1> dut_to_tb{};
+      if (true)
+      {
+        read_data_from_ACC(SOBELFILTER_READ_ADDR, dut_to_tb.data(), dut_to_tb.size());
+      }
+      else
+      {
+        dut_to_tb[0] = 255;
+        // std::cerr << "dut_to_tb[0] == " << int(dut_to_tb[0]) << std::endl;
+      }
+      set(row, col - 4, 0, dut_to_tb[0]);
+      set(row, col - 4, 1, dut_to_tb[0]);
+      set(row, col - 4, 2, dut_to_tb[0]);
+    }
+  }
+  write_bmp("lena_std_out.bmp");
 }
