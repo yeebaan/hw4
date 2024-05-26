@@ -197,9 +197,9 @@ auto get(
     Y col,
     Z channel)
 {
-  if ((X{} <= row && row < height) &&
-      (Y{} <= col && col < width) &&
-      (Z{} <= channel && channel < bytes_per_pixel))
+  if ((0 <= row && row < height) &&
+      (0 <= col && col < width) &&
+      (0 <= channel && channel < bytes_per_pixel))
   {
     return source_bitmap[(row * width + col) * bytes_per_pixel + channel];
   }
@@ -220,9 +220,9 @@ auto set(
     Z channel,
     A data)
 {
-  if ((X{} <= row && row < height) &&
-      (Y{} <= col && col < width) &&
-      (Z{} <= channel && channel < bytes_per_pixel))
+  if ((0 <= row && row < height) &&
+      (0 <= col && col < width) &&
+      (0 <= channel && channel < bytes_per_pixel))
   {
     target_bitmap[(row * width + col) * bytes_per_pixel + channel] = data;
   }
