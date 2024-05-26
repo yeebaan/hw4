@@ -170,47 +170,7 @@ void read_data_from_ACC(char* ADDR, unsigned char* buffer, int len){
   }
 }
 
-#include "get.h"
-#include "set.h"
-
-template<typename T, typename U, typename V>
-auto safe_get(T row, U col, V channel) {
-  return get(source_bitmap, height, width, bytes_per_pixel, row, col, channel);
-}
-
-template<typename T, typename U, typename V, typename W>
-auto safe_set(T row, U col, V channel, W data) {
-  return set(source_bitmap, height, width, bytes_per_pixel, row, col, channel, data) = data;
-}
-
+#include "h4main.h"
 int main(int argc, char *argv[]) {
-  read_bmp("lena_std_short.bmp");
-  for (auto row{}; row < height; row++) {
-    for (auto col{}; col < width + 4; col++) {
-      const std::array<const uint8_t, 15> tb_to_dut{
-        safe_get(row - 2, col - 2, 0),
-        safe_get(row - 2, col - 2, 1),
-        safe_get(row - 2, col - 2, 2),
-        safe_get(row - 1, col - 2, 0),
-        safe_get(row - 1, col - 2, 1),
-        safe_get(row - 1, col - 2, 2),
-        safe_get(row    , col - 2, 0),
-        safe_get(row    , col - 2, 1),
-        safe_get(row    , col - 2, 2),
-        safe_get(row + 1, col - 2, 0),
-        safe_get(row + 1, col - 2, 1),
-        safe_get(row + 1, col - 2, 2),
-        safe_get(row + 2, col - 2, 0),
-        safe_get(row + 2, col - 2, 1),
-        safe_get(row + 2, col - 2, 2),
-      };
-      write_data_to_ACC(SOBELFILTER_START_ADDR, tb_to_dut.data(), tb_to_dut.size());
-      const std::array<const uint8_t, 1> dut_to_tb{};
-      read_data_from_ACC(SOBELFILTER_READ_ADDR, dut_to_tb.data(), dut_to_tb.size());
-      safe_set(row, col - 4, 0, dut_to_tb[0]);
-      safe_set(row, col - 4, 1, dut_to_tb[0]);
-      safe_set(row, col - 4, 2, dut_to_tb[0]);
-    }
-  }
-  write_bmp("lena_std_out.bmp");
+  h4main(read_bmp, write_bmp, write_data_to_ACC, read_data_from_ACC, height, width, bytes_per_pixel, source_bitmap, SOBELFILTER_START_ADDR, SOBELFILTER_READ_ADDR);
 }
