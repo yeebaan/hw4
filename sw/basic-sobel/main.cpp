@@ -265,22 +265,12 @@ int main(int argc, char *argv[])
           get(row + 2, col - 2, 2),
       };
       write_data_to_ACC(SOBELFILTER_START_ADDR, tb_to_dut.data(), tb_to_dut.size());
-      uint8_t dut_to_tb[] = {0};
-      if (true)
-      {
-        read_data_from_ACC(SOBELFILTER_READ_ADDR, &dut_to_tb[0], 1);
-        std::cout << int(dut_to_tb[0]);
-        std::cout << int(dut_to_tb[0]);
-        std::cout << " | ";
-      }
-      else
-      {
-        dut_to_tb[0] = 255;
-      }
+      std::array<uint8_t, 1> dut_to_tb{0};
+      read_data_from_ACC(SOBELFILTER_READ_ADDR, dut_to_tb.data(), dut_to_tb.size());
       auto dut_to_tb_0{dut_to_tb[0]};
-      set(row, col - 4, 0, uint8_t(dut_to_tb_0));
-      set(row, col - 4, 1, uint8_t(dut_to_tb_0));
-      set(row, col - 4, 2, uint8_t(dut_to_tb_0));
+      set(row, col - 4, 0, dut_to_tb_0);
+      set(row, col - 4, 1, dut_to_tb_0);
+      set(row, col - 4, 2, dut_to_tb_0);
     }
   }
   write_bmp("lena_std_out.bmp");
