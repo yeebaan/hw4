@@ -152,7 +152,7 @@ int write_bmp(std::string outfile_name)
   return 0;
 }
 
-void write_data_to_ACC(char *ADDR, unsigned char *buffer, int len)
+void write_data_to_ACC(char *ADDR, volatile unsigned char *buffer, int len)
 {
   if (_is_using_dma)
   {
@@ -165,10 +165,10 @@ void write_data_to_ACC(char *ADDR, unsigned char *buffer, int len)
   else
   {
     // Directly Send
-    memcpy(ADDR, buffer, sizeof(unsigned char) * len);
+    memcpy(ADDR, (void*)buffer, sizeof(unsigned char) * len);
   }
 }
-void read_data_from_ACC(char *ADDR, unsigned char *buffer, int len)
+void read_data_from_ACC(char *ADDR, volatile unsigned char *buffer, int len)
 {
   if (_is_using_dma)
   {
@@ -181,7 +181,7 @@ void read_data_from_ACC(char *ADDR, unsigned char *buffer, int len)
   else
   {
     // Directly Read
-    memcpy(buffer, ADDR, sizeof(unsigned char) * len);
+    memcpy((void*)buffer, ADDR, sizeof(unsigned char) * len);
   }
 }
 
@@ -231,47 +231,54 @@ auto set(
   }
 }
 
+constexpr auto tb_to_dut_size{16};
+constexpr auto dut_to_tb_size{16};
+static volatile uint8_t tb_to_dut[tb_to_dut_size] = {0};
+static volatile uint8_t dut_to_tb[dut_to_tb_size] = {0};
+
 int main(int argc, char *argv[])
 {
   read_bmp("lena_std_short.bmp");
   for (auto row{0}; row < height; row++)
   {
-    if (row % 64 == 0)
-    {
-      std::cerr << ".";
-    }
-    else
-    {
-    }
-    // std::cerr << "row " << row << std::endl;
+    (row % 2 == 0) && (std::cerr << ".");
     for (auto col{0}; col < width + 4; col++)
     {
-      // std::cerr << "col " << col << std::endl;
-      std::array<uint8_t, 15> tb_to_dut{
-          get(row - 2, col - 2, 0),
-          get(row - 2, col - 2, 1),
-          get(row - 2, col - 2, 2),
-          get(row - 1, col - 2, 0),
-          get(row - 1, col - 2, 1),
-          get(row - 1, col - 2, 2),
-          get(row + 0, col - 2, 0),
-          get(row + 0, col - 2, 1),
-          get(row + 0, col - 2, 2),
-          get(row + 1, col - 2, 0),
-          get(row + 1, col - 2, 1),
-          get(row + 1, col - 2, 2),
-          get(row + 2, col - 2, 0),
-          get(row + 2, col - 2, 1),
-          get(row + 2, col - 2, 2),
-      };
-      write_data_to_ACC(SOBELFILTER_START_ADDR, tb_to_dut.data(), tb_to_dut.size());
-      std::array<uint8_t, 1> dut_to_tb{0};
-      read_data_from_ACC(SOBELFILTER_READ_ADDR, dut_to_tb.data(), dut_to_tb.size());
-      auto dut_to_tb_0{dut_to_tb[0]};
+      tb_to_dut[ 0] = get(row - 2, col - 2, 0);
+      tb_to_dut[ 1] = get(row - 2, col - 2, 1);
+      tb_to_dut[ 2] = get(row - 2, col - 2, 2);
+      tb_to_dut[ 3] = get(row - 1, col - 2, 0);
+      tb_to_dut[ 4] = get(row - 1, col - 2, 1);
+      tb_to_dut[ 5] = get(row - 1, col - 2, 2);
+      tb_to_dut[ 6] = get(row + 0, col - 2, 0);
+      tb_to_dut[ 7] = get(row + 0, col - 2, 1);
+      tb_to_dut[ 8] = get(row + 0, col - 2, 2);
+      tb_to_dut[ 9] = get(row + 1, col - 2, 0);
+      tb_to_dut[10] = get(row + 1, col - 2, 1);
+      tb_to_dut[11] = get(row + 1, col - 2, 2);
+      tb_to_dut[12] = get(row + 2, col - 2, 0);
+      tb_to_dut[13] = get(row + 2, col - 2, 1);
+      tb_to_dut[14] = get(row + 2, col - 2, 2);
+      write_data_to_ACC(SOBELFILTER_START_ADDR, tb_to_dut, tb_to_dut_size);
+      for (auto i{0}; i < dut_to_tb_size; i++) {
+        dut_to_tb[i] = 0;
+      }
+      read_data_from_ACC(SOBELFILTER_READ_ADDR, dut_to_tb, dut_to_tb_size);
+      while (
+          (dut_to_tb[0] != dut_to_tb[2]) ||
+          (dut_to_tb[1] != dut_to_tb[3]) ||
+          (0x0f != (0x0f & (dut_to_tb[0]))) ||
+          (0xf0 != (0xf0 & (dut_to_tb[1]))) ||
+          (0x0f != (0x0f & (dut_to_tb[2]))) ||
+          (0xf0 != (0xf0 & (dut_to_tb[3]))))
+      {
+      }
+      auto dut_to_tb_0{dut_to_tb[0] & dut_to_tb[1]};
       set(row, col - 4, 0, dut_to_tb_0);
       set(row, col - 4, 1, dut_to_tb_0);
       set(row, col - 4, 2, dut_to_tb_0);
     }
   }
+  std::cerr << std::endl;
   write_bmp("lena_std_out.bmp");
 }

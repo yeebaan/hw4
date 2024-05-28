@@ -49,25 +49,25 @@ make sim
 after editing vp:
 
 ```shell
-cp -r ~/ee6470/sobel_riscv_vp/riscv-vp/vp/src/platform/* ~/ee6470/riscv-vp/vp/src/platform
-cp -r ~/ee6470/sobel_riscv_vp/riscv-vp/sw/* ~/ee6470/riscv-vp/sw
-cp -r ~/ee6470/hw4/vp/src/platform/* ~/ee6470/riscv-vp/vp/src/platform
-cp -r ~/ee6470/hw4/sw/* ~/ee6470/riscv-vp/sw
-cd ~/ee6470/riscv-vp/vp/build
-make
-cd ~/ee6470/riscv-vp/sw/basic-sobel
+cp -r ~/ee6470/sobel_riscv_vp/riscv-vp/vp/src/platform/* ~/ee6470/riscv-vp/vp/src/platform && \
+cp -r ~/ee6470/sobel_riscv_vp/riscv-vp/sw/* ~/ee6470/riscv-vp/sw && \
+cp -r ~/ee6470/hw4/vp/src/platform/* ~/ee6470/riscv-vp/vp/src/platform && \
+cp -r ~/ee6470/hw4/sw/* ~/ee6470/riscv-vp/sw && \
+cd ~/ee6470/riscv-vp/vp/build && \
+make && \
+cd ~/ee6470/riscv-vp/sw/basic-sobel && \
 make sim
 ```
 
 after editing sw:
 
 ```shell
-cp -r ~/ee6470/sobel_riscv_vp/riscv-vp/vp/src/platform/* ~/ee6470/riscv-vp/vp/src/platform
-cp -r ~/ee6470/sobel_riscv_vp/riscv-vp/sw/* ~/ee6470/riscv-vp/sw
-cp -r ~/ee6470/hw4/vp/src/platform/* ~/ee6470/riscv-vp/vp/src/platform
-cp -r ~/ee6470/hw4/sw/* ~/ee6470/riscv-vp/sw
-# cd ~/ee6470/riscv-vp/vp/build
-# make
-cd ~/ee6470/riscv-vp/sw/basic-sobel
+cp -r ~/ee6470/sobel_riscv_vp/riscv-vp/vp/src/platform/* ~/ee6470/riscv-vp/vp/src/platform && \
+cp -r ~/ee6470/sobel_riscv_vp/riscv-vp/sw/* ~/ee6470/riscv-vp/sw && \
+cp -r ~/ee6470/hw4/vp/src/platform/* ~/ee6470/riscv-vp/vp/src/platform && \
+cp -r ~/ee6470/hw4/sw/* ~/ee6470/riscv-vp/sw && \
+# cd ~/ee6470/riscv-vp/vp/build && \
+# make && \
+cd ~/ee6470/riscv-vp/sw/basic-sobel && \
 make sim
 ```
