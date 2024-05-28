@@ -1,6 +1,6 @@
 # Steps to reproduce
 
-Powershell:
+Powershell on the host:
 
 ```shell
 mkdir C:/Users/user/ee6470
@@ -11,7 +11,7 @@ docker build -f EE6470/Dockerfile.x86-64 -t ee6470/ubuntu-ee6470:latest ./EE6470
 docker run -h ubuntu --rm --cap-add SYS_ADMIN -it -v "C:\\Users\\user:/home/user" ee6470/ubuntu-ee6470:latest
 ```
 
-bash:
+/bin/sh on the host:
 
 ```shell
 mkdir ~/ee6470
@@ -22,8 +22,15 @@ docker build -f EE6470/Dockerfile.x86-64 -t ee6470/ubuntu-ee6470:latest ./EE6470
 docker run -h ubuntu --rm --cap-add SYS_ADMIN -it -e LOCAL_USER_ID=$(id -u $USER) -v $HOME:/home/user ee6470/ubuntu-ee6470:latest
 ```
 
+/bin/sh in the container as a superuser:
+
 ```shell
 entrypoint.sh
+```
+
+/bin/sh in the container:
+
+```shell
 source ~/ee6470/docker-images/EE6470/bashrc
 cd ~/ee6470
 git clone https://github.com/agra-uni-bremen/riscv-vp.git
@@ -42,9 +49,12 @@ cd ~/ee6470/riscv-vp/vp/build
 cmake ..
 make
 cd ~/ee6470/riscv-vp/sw/basic-sobel
-# make
 make sim
 ```
+
+view ~/ee6470/riscv-vp/sw/basic-sobel/lena_std_out.bmp using a web browser
+
+## one-liner program
 
 after editing vp:
 
@@ -70,4 +80,11 @@ cp -r ~/ee6470/hw4/sw/* ~/ee6470/riscv-vp/sw && \
 # make && \
 cd ~/ee6470/riscv-vp/sw/basic-sobel && \
 make sim
+```
+
+forcibly terminate riscv-vp-acc:
+
+```shell
+docker ps
+docker exec -it $CONTAINER_ID pkill riscv-vp-acc
 ```
